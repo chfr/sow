@@ -18,9 +18,9 @@ void list_clear(node *head) {
 	node *next = head;
 
 	while (next) {
+		free(next);
+		free(next->data);
 		next = head->next;
-		free(head);
-		free(head->data);
 	}
 }
 

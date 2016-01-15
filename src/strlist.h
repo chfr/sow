@@ -5,5 +5,5 @@ typedef struct node {
 } node;
 
 node *list_add(node *head, char *str);
-void list_del(node *head);
+void list_clear(node *head);
 void print_list(node *head);

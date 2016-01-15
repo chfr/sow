@@ -14,7 +14,7 @@ node *list_add(node *head, char *str) {
 	return head->next;
 }
 
-void list_del(node *head) {
+void list_clear(node *head) {
 	node *next = head;
 
 	while (next) {

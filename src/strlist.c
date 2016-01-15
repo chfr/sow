@@ -14,13 +14,14 @@ node *list_add(node *head, char *str) {
 	return head->next;
 }
 
-void list_clear(node *head) {
-	node *next = head;
+void list_clear(const node *head) {
+	node *next;
 
-	while (next) {
-		free(next);
-		free(next->data);
+	while (head) {
 		next = head->next;
+		free(head->data);
+		free((node *)head);
+		head = next;
 	}
 }
 

@@ -87,8 +87,6 @@ int main(/*int argc, char *argv[]*/) {
 		response = respond(req);
 		write(client_socket, response, strlen(response));
 
-		list_clear(list);
-
 		if (n < 0) {
 			perror("reading from socket failed");
 			exit(1);

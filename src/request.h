@@ -14,3 +14,4 @@ typedef struct request {
 
 void request_print(request *req);
 request *request_parse(struct strlist *strlist);
+void request_free(request *req);

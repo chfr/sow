@@ -37,7 +37,8 @@ request *request_parse(struct strlist *list) {
 			if (strstr(line, "Host: ")) {
 
 			} else if (strstr(line, "User-Agent: ")) {
-				req->user_agent = line + 12;
+				req->user_agent = (char *)malloc(sizeof(char)*strlen(line + 12));
+				strcpy(req->user_agent, line + 12);
 			} else if (strstr(line, "Accept: ")) {
 
 			} else if (strstr(line, "Accept-Language: ")) {
@@ -46,6 +47,8 @@ request *request_parse(struct strlist *list) {
 
 			} else if (strstr(line, "Connection: ")) {
 
+			} else if (strstr(line, "Content-Length: ")) {
+				req->length = atoi(line + 16);
 			} else {
 				printf("WARNING: unknown HTTP header in line:\n%s\n", line);
 			}
@@ -60,6 +63,16 @@ void request_print(request *req) {
 	printf("%d %s HTTP/X.X\n", req->method, req->path);
 	printf("ua: %s\n", req->user_agent);
 	printf("len: %d\n", req->length);
+}
+
+void request_free(request *req) {
+	if (req->path)
+		free(req->path);
+
+	if (req->user_agent)
+		free(req->user_agent);
+
+	free(req);
 }
 
 

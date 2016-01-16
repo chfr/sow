@@ -8,7 +8,7 @@ typedef struct request {
 	char* user_agent;
 	int major_ver;
 	int minor_ver;
-	int length;
+	int len;
 } request;
 
 

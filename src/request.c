@@ -31,7 +31,7 @@ request *request_parse(struct strlist *list) {
 				printf("WARNING: unknown HTTP method in line:\n%s\n", line);
 			}
 
-			req->length = 1337;
+			req->len = 1337;
 			
 		} else {
 			if (strstr(line, "Host: ")) {
@@ -48,7 +48,7 @@ request *request_parse(struct strlist *list) {
 			} else if (strstr(line, "Connection: ")) {
 
 			} else if (strstr(line, "Content-Length: ")) {
-				req->length = atoi(line + 16);
+				req->len = atoi(line + 16);
 			} else {
 				printf("WARNING: unknown HTTP header in line:\n%s\n", line);
 			}
@@ -62,7 +62,7 @@ void request_print(request *req) {
 	printf("request obj at %p", (void *)req);
 	printf("%d %s HTTP/X.X\n", req->method, req->path);
 	printf("ua: %s\n", req->user_agent);
-	printf("len: %d\n", req->length);
+	printf("len: %d\n", req->len);
 }
 
 void request_free(request *req) {

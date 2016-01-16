@@ -82,8 +82,8 @@ int main(/*int argc, char *argv[]*/) {
 		printf("read %d chars\n", n);
 		process_lines(list, buffer);
 		strlist_print(list);
-		req = parse_request(list_start);
-		print_req(req);
+		req = request_parse(list_start);
+		request_print(req);
 		response = respond(req);
 		write(client_socket, response, strlen(response));
 

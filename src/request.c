@@ -5,7 +5,7 @@
 #include "request.h"
 #include "strlist.h"
 
-request *parse_request(struct strlist *list) {
+request *request_parse(struct strlist *list) {
 	char *line;
 	int i;
 	request *req = (request *)malloc(sizeof(request));
@@ -55,7 +55,7 @@ request *parse_request(struct strlist *list) {
 	return req;
 }
 
-void print_req(request *req) {
+void request_print(request *req) {
 	printf("request obj at %p", (void *)req);
 	printf("%d %s HTTP/X.X\n", req->method, req->path);
 	printf("ua: %s\n", req->user_agent);

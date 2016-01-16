@@ -4,7 +4,12 @@
 #include "strlist.h"
 
 strlist *strlist_new() {
-	return (strlist *)malloc(sizeof(strlist));
+	strlist *ret = (strlist *)malloc(sizeof(strlist));
+	ret->next = ret->prev = NULL;
+	ret->data = NULL;
+	ret->len = -1;
+	printf("Created new strlist at %p\n", (void *)ret);
+	return ret;
 }
 
 // if node->data is NULL, this node is empty, and we add the
@@ -17,6 +22,7 @@ strlist *strlist_add(strlist *node, const char* str) {
 		new = (strlist *)malloc(sizeof(strlist));
 		node->next = new;
 		new->prev = node;
+		new->next = NULL;
 	} else {
 		new = node;
 	}

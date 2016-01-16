@@ -92,6 +92,8 @@ int main(/*int argc, char *argv[]*/) {
 			exit(1);
 		}
 		close(client_socket);
+		//~ strlist_clear(list);
+		//~ free(buffer);
 	} while (1);
 	
 	close(server_socket);
@@ -111,12 +113,10 @@ strlist *process_lines(strlist *head, char *buf) {
 		*line++ = c;
 		if (c == '\n') {
 			*line = '\0';
-			printf("read request line: %s\n", line_start);
 			head = strlist_add(head, line_start);
 			if (list_start == NULL)
 				list_start = head;
-			line = line_start;//(char *)malloc(MAXLEN*sizeof(char));
-			//~ line_start = line;
+			line = line_start;
 		}
 	}
 
@@ -164,7 +164,6 @@ Content-Length: %d\n\n\n";
 		
 		ret = (char *)malloc(sizeof(char)*(headerlen+htmllen));
 		sprintf(ret, headers, htmllen);
-		//~ strcpy(ret, headers);
 		strcpy(&ret[headerlen], html);
 		ret[headerlen+htmllen] = '\0';
 		
@@ -193,9 +192,9 @@ strlist *readfile(char *filename) {
 	while ((n = read(fd, &c, 1)) > 0) {
 		*line++ = c;
 		if (c == '\n') {
+			*line = '\0';
 			data = strlist_add(data, line_start);
-			line = line_start;//(char *)malloc(MAXLEN*sizeof(char));
-			//~ line_start = line;
+			line = line_start;
 		}
 	}
 

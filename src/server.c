@@ -17,9 +17,9 @@
 #define MAXLEN 1024
 
 void error(char* msg);
-node *process_lines(node *head, char *buf);
+strlist *process_lines(strlist *head, char *buf);
 char *respond(request *req);
-node *readfile(char *filename);
+strlist *readfile(char *filename);
 
 int main(/*int argc, char *argv[]*/) {
 	printf("started\n");
@@ -72,8 +72,8 @@ int main(/*int argc, char *argv[]*/) {
 			error("error on client accept\n");
 		}
 
-		node *list = (node *)malloc(sizeof(node));
-		node *list_start = list;
+		strlist *list = strlist_new();
+		strlist *list_start = list;
 		request *req = NULL;
 		buffer = (char *)malloc(sizeof(char)*BUFLEN);
 		char *response;
@@ -81,7 +81,7 @@ int main(/*int argc, char *argv[]*/) {
 		n = read(client_socket, buffer, BUFLEN-1);
 		printf("read %d chars\n", n);
 		process_lines(list, buffer);
-		print_list(list);
+		strlist_print(list);
 		req = parse_request(list_start);
 		print_req(req);
 		response = respond(req);
@@ -100,29 +100,33 @@ int main(/*int argc, char *argv[]*/) {
 	return 0;
 }
 
-node *process_lines(node *head, char *buf) {
+strlist *process_lines(strlist *head, char *buf) {
 	
 	char c;
 	char *line = (char *)malloc(MAXLEN*sizeof(char));
 	char *line_start = line;
-	node *list_start = NULL;
+	strlist *list_start = NULL;
 
 	while ((c = *buf++) != '\0') {
 		*line++ = c;
 		if (c == '\n') {
-			line = '\0';
-			head = list_add(head, line_start);
+			*line = '\0';
+			printf("read request line: %s\n", line_start);
+			head = strlist_add(head, line_start);
 			if (list_start == NULL)
 				list_start = head;
-			line = (char *)malloc(MAXLEN*sizeof(char));
-			line_start = line;
+			line = line_start;//(char *)malloc(MAXLEN*sizeof(char));
+			//~ line_start = line;
 		}
 	}
+
+	free(line);
+	
 	return list_start;
 }
 
 char *respond(request *req) {
-	node *data, *iter;
+	strlist *data, *iter;
 	int len = 0;
 	char *html, *ret, *path = req->path, *str;
 	char *headers = "HTTP/1.1 200 OK\n\
@@ -164,17 +168,17 @@ Content-Length: %d\n\n\n";
 		strcpy(&ret[headerlen], html);
 		ret[headerlen+htmllen] = '\0';
 		
-		
+		free(html);
 		printf("sending response:\n|%s|\n\n", ret);
 	}
 	return ret;
 }
 
-node *readfile(char *filename) {
+strlist *readfile(char *filename) {
 	int fd, n;
 	char c, *line, *line_start;
-	node *data = (node *)malloc(sizeof(node));
-	node *ret = data;
+	strlist *data = strlist_new();
+	strlist *ret = data;
 
 	printf("opening file %s\n", filename);
 
@@ -189,14 +193,16 @@ node *readfile(char *filename) {
 	while ((n = read(fd, &c, 1)) > 0) {
 		*line++ = c;
 		if (c == '\n') {
-			data = list_add(data, line_start);
-			line = (char *)malloc(MAXLEN*sizeof(char));
-			line_start = line;
+			data = strlist_add(data, line_start);
+			line = line_start;//(char *)malloc(MAXLEN*sizeof(char));
+			//~ line_start = line;
 		}
 	}
 
 	printf("finished reading file %s:\n", filename);
-	print_list(ret);
+	strlist_print(ret);
+
+	free(line);
 
 	close(fd);
 

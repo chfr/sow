@@ -1,6 +1,6 @@
 typedef enum {GET, POST} http_method;
 
-struct node;
+struct strlist;
 
 typedef struct request {
 	http_method method;
@@ -13,4 +13,4 @@ typedef struct request {
 
 
 void print_req(request *req);
-request *parse_request(struct node *strlist);
+request *parse_request(struct strlist *strlist);

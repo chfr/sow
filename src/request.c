@@ -5,13 +5,13 @@
 #include "request.h"
 #include "strlist.h"
 
-request *parse_request(struct node *strlist) {
+request *parse_request(struct strlist *list) {
 	char *line;
 	int i;
 	request *req = (request *)malloc(sizeof(request));
 
-	for (i = 0; strlist; strlist = strlist->next, i++) {
-		line = strlist->data;
+	for (i = 0; list; list = list->next, i++) {
+		line = list->data;
 
 		if (!line)
 			continue;

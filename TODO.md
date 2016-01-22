@@ -10,4 +10,3 @@ In no particular order. When everything's on fire, which one do you put out firs
 * Change the strlist implementation to operate on the head of lists instead of the tail. Gets rid of the ugly list_start junk.
 * Add info/debug/fine printouts (with compiler flags?)
 * Fix the nasty sscanf junk in request.c
-* Write (or use existing?) string convenience methods. Next word, next non-whitespace character, etc.

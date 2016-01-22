@@ -139,7 +139,7 @@ Content-Length: %d\n\n\n";
 			iter = iter->next;
 		}
 		
-		html = (char *)malloc(sizeof(char)*(len+1));
+		html = malloc(sizeof(char)*(len+1));
 		htmllen = (size_t)(len+1);
 
 		iter = data;
@@ -154,7 +154,7 @@ Content-Length: %d\n\n\n";
 			iter = iter->next;
 		}
 		
-		ret = (char *)malloc(sizeof(char)*(headerlen+htmllen));
+		ret = malloc(sizeof(char)*(headerlen+htmllen));
 		sprintf(ret, headers, htmllen);
 		strcpy(&ret[headerlen], html);
 		ret[headerlen+htmllen] = '\0';
@@ -179,7 +179,7 @@ strlist *readfile(char *filename) {
 		error("ERROR:");
 		exit(1);
 	}
-	line = (char *)malloc(MAXLEN*sizeof(char));
+	line = malloc(MAXLEN*sizeof(char));
 	line_start = line;
 	while ((n = read(fd, &c, 1)) > 0) {
 		*line++ = c;

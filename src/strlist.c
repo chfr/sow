@@ -19,7 +19,7 @@ strlist *strlist_add(strlist *node, const char* str) {
 	strlist *new;
 	
 	if (node->data && !node->next) {
-		new = (strlist *)malloc(sizeof(strlist));
+		new = malloc(sizeof(strlist));
 		node->next = new;
 		new->prev = node;
 		new->next = NULL;
@@ -27,7 +27,7 @@ strlist *strlist_add(strlist *node, const char* str) {
 		new = node;
 	}
 	
-	new->data = (char *)malloc(sizeof(char)*strlen(str));
+	new->data = malloc(sizeof(char)*strlen(str));
 	strcpy(new->data, str);
 	new->len = strlen(str);
 

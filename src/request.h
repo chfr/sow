@@ -10,10 +10,13 @@ typedef struct request {
 	char* user_agent;
 	int major_ver;
 	int minor_ver;
-	int len;
+	int content_length;
 } request;
 
 
+request *request_new();
+int request_parse(request *req, char *line);
 void request_print(request *req);
-request *request_parse(struct strlist *strlist);
 void request_free(request *req);
+
+int request_get_content_length(request *req);

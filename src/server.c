@@ -10,6 +10,7 @@
 
 #include "strlist.h"
 #include "request.h"
+#include "utils.h"
 
 #define SRVPORT 8080
 
@@ -25,7 +26,6 @@ int main(/*int argc, char *argv[]*/) {
 	printf("started\n");
 	int server_socket, client_socket, port, res, client_len, n;
 	struct sockaddr_in srv_addr, client_addr;
-	char *buffer;
 	int iSetOption = 1;
 
 	port = SRVPORT;
@@ -72,28 +72,52 @@ int main(/*int argc, char *argv[]*/) {
 			error("error on client accept\n");
 		}
 
-		strlist *list = strlist_new();
-		strlist *list_start = list;
-		request *req = NULL;
-		buffer = (char *)malloc(sizeof(char)*BUFLEN);
+		
+		request *req = request_new();
 		char *response;
+		char line[MAXLEN];
+		int i = 0; // TODO check so it doesn't overflow line
 
-		n = read(client_socket, buffer, BUFLEN-1);
-		printf("read %d chars\n", n);
-		process_lines(list, buffer);
-		strlist_print(list);
-		req = request_parse(list_start);
-		request_print(req);
-		response = respond(req);
-		write(client_socket, response, strlen(response));
+		while ((n = read(client_socket, &line[i], 1)) > 0) {
+			printf("i=%d, line[i] = |%d|\n", i, (int)line[i]);
+			if (is_newline(line[i])) {
+				if (i == 1 && is_crlf(line)) {
+					// we've read an empty line, should be either the
+					// end of the request or the start of the body
+					
+					if (request_get_content_length(req) <= 0) {
+						printf("empty line and no Content-Length header read\n");
+
+						request_print(req);
+						response = respond(req);
+						write(client_socket, response, strlen(response));
+
+						i = 0;
+						continue;
+					}
+
+					
+											
+				}
+				printf("i: %d\n", i);
+				line[++i] = '\0';
+				if (request_parse(req, line)) {
+					// some error occurred while parsing
+				}
+
+				i = 0;
+				continue;
+			}
+			
+			i++;
+		}
+		
+		
 
 		if (n < 0) {
 			perror("reading from socket failed");
 			exit(1);
 		}
-		close(client_socket);
-		//~ strlist_clear(list);
-		//~ free(buffer);
 	} while (1);
 	
 	close(server_socket);

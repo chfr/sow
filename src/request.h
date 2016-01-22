@@ -1,3 +1,5 @@
+#pragma once
+
 typedef enum {GET, POST} http_method;
 
 struct strlist;

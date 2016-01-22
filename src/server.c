@@ -79,7 +79,6 @@ int main(/*int argc, char *argv[]*/) {
 		int i = 0; // TODO check so it doesn't overflow line
 
 		while ((n = read(client_socket, &line[i], 1)) > 0) {
-			printf("i=%d, line[i] = |%d|\n", i, (int)line[i]);
 			if (is_newline(line[i])) {
 				if (i == 1 && is_crlf(line)) {
 					// we've read an empty line, should be either the
@@ -99,7 +98,6 @@ int main(/*int argc, char *argv[]*/) {
 					
 											
 				}
-				printf("i: %d\n", i);
 				line[++i] = '\0';
 				if (request_parse(req, line)) {
 					// some error occurred while parsing

@@ -138,9 +138,9 @@ Content-Length: %d\n\n\n";
 			len += iter->len;
 			iter = iter->next;
 		}
-		
-		html = malloc(sizeof(char)*(len+1));
+
 		htmllen = (size_t)(len+1);
+		html = malloc(sizeof(char)*htmllen);
 
 		iter = data;
 		str = html;

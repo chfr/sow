@@ -72,7 +72,6 @@ int main(/*int argc, char *argv[]*/) {
 			error("error on client accept\n");
 		}
 
-		
 		request *req = request_new();
 		char *response;
 		char line[MAXLEN];
@@ -93,25 +92,19 @@ int main(/*int argc, char *argv[]*/) {
 
 						i = 0;
 						continue;
-					}
-
-					
-											
+					}							
 				}
 				line[++i] = '\0';
 				if (request_parse(req, line)) {
 					// some error occurred while parsing
 				}
-
+				
 				i = 0;
 				continue;
 			}
-			
 			i++;
 		}
 		
-		
-
 		if (n < 0) {
 			perror("reading from socket failed");
 			exit(1);
@@ -122,29 +115,6 @@ int main(/*int argc, char *argv[]*/) {
 	close(client_socket);
 
 	return 0;
-}
-
-strlist *process_lines(strlist *head, char *buf) {
-	
-	char c;
-	char *line = (char *)malloc(MAXLEN*sizeof(char));
-	char *line_start = line;
-	strlist *list_start = NULL;
-
-	while ((c = *buf++) != '\0') {
-		*line++ = c;
-		if (c == '\n') {
-			*line = '\0';
-			head = strlist_add(head, line_start);
-			if (list_start == NULL)
-				list_start = head;
-			line = line_start;
-		}
-	}
-
-	free(line);
-	
-	return list_start;
 }
 
 char *respond(request *req) {

@@ -2,13 +2,14 @@
 #include <stdio.h>
 
 #include "strlist.h"
+#include "utils.h"
 
 strlist *strlist_new() {
 	strlist *ret = (strlist *)malloc(sizeof(strlist));
 	ret->next = ret->prev = NULL;
 	ret->data = NULL;
 	ret->len = -1;
-	printf("Created new strlist at %p\n", (void *)ret);
+	DEBUG("Created new strlist at %p\n", (void *)ret);
 	return ret;
 }
 
@@ -46,12 +47,11 @@ void strlist_clear(const strlist *list) {
 }
 
 void strlist_del(strlist *node) {
-	printf("deleting node at %p\n", (void *)node);
 	if (!node)
 		return;
 
 	if (!node->prev && node->next) {
-		printf("ERROR: Can't delete the head of a list while it has children!\n");
+		ERROR("ERROR: Can't delete the head of a list while it has children!\n");
 		exit(1);
 	}
 

@@ -18,14 +18,13 @@
 #define BUFLEN 1024
 #define MAXLEN 1024
 
-void error(char* msg);
 strlist *process_lines(strlist *head, char *buf);
 response *make_response(request *req);
 response *make_404_response();
 strlist *readfile(char *filename);
 
 int main(/*int argc, char *argv[]*/) {
-	printf("started\n");
+	INFO("Started\n");
 	int server_socket, client_socket, port, res, client_len, n;
 	struct sockaddr_in srv_addr, client_addr;
 	int iSetOption = 1;
@@ -37,9 +36,10 @@ int main(/*int argc, char *argv[]*/) {
         sizeof(iSetOption));
         
 	if (server_socket < 0) {
-		error("error opening socket\n");
+		ERROR("Error opening socket\n");
+		IFERROR(perror(""));
 	}
-	printf("made server socket\n");
+	INFO("Made server socket\n");
 
 	memset((char *) &srv_addr, 0, sizeof(srv_addr));
 	
@@ -50,16 +50,18 @@ int main(/*int argc, char *argv[]*/) {
 	while ((res = bind(server_socket,
 			   (struct sockaddr *) &srv_addr,
 			   sizeof(srv_addr))) < 0) {
-		error("error binding socket");
+		ERROR("Error binding socket\n");
+		IFERROR(perror(""));
 	}
 
 	listen(server_socket, 5);
-	printf("listening\n");
+	INFO("Listening on port %d\n", port);
 
 	client_len = sizeof(client_addr);
 
 	if (chdir("content")) {
-		error("Could not chdir to the content directory\n");
+		ERROR("Could not chdir to the content directory\n");
+		IFERROR(perror(""));
 		exit(1);
 	}
 
@@ -68,10 +70,11 @@ int main(/*int argc, char *argv[]*/) {
 							   (struct sockaddr *) &client_addr,
 							   (socklen_t *) &client_len);
 
-		printf("accepted client socket\n");
+		INFO("Accepted client socket\n");
 
 		if (client_socket < 0) {
-			error("error on client accept\n");
+			ERROR("Error on client accept\n");
+			IFERROR(perror(""));
 		}
 
 		request *req = request_new();
@@ -86,7 +89,7 @@ int main(/*int argc, char *argv[]*/) {
 					// end of the request or the start of the body
 					
 					if (request_get_content_length(req) <= 0) {
-						printf("empty line and no Content-Length header read\n");
+						DEBUG("Empty line and no Content-Length header read\n");
 
 						request_print(req);
 						resp = make_response(req);
@@ -112,7 +115,8 @@ int main(/*int argc, char *argv[]*/) {
 		}
 		
 		if (n < 0) {
-			perror("reading from socket failed");
+			ERROR("Reading from socket failed");
+			IFERROR(perror(""));
 			exit(1);
 		}
 	} while (1);
@@ -132,23 +136,23 @@ response *make_response(request *req) {
 	response_set_content_type(resp, "text/html");
 	
 	if (req->method == GET) {
-		printf("requested path %s\n", path);
+		INFO("Requested path %s\n", path);
 
 		if (path[0] == '/')
 			path = &path[1];
 
 		filedata = readfile(path);
 		if (!filedata) {
-			printf("Could not open file, generating 404...\n");
+			WARN("Could not open file, generating 404...\n");
 			return make_404_response();
 		}
 		html = strlist_to_string(filedata);
-		printf("Read HTML:\n%s", html);
+		INFO("Read HTML:\n%s", html);
 		
 		response_set_body(resp, html);
 
-		printf("Generated response:\n");
-		response_write(resp, STDOUT_FILENO);
+		INFO("Generated response:\n");
+		IFINFO(response_write(resp, STDOUT_FILENO));
 
 		//~ free(html);
 	}
@@ -173,12 +177,12 @@ response *make_404_response() {
 		html = strlist_to_string(filedata);
 	}
 	
-	printf("Read HTML:\n%s", html);
+	INFO("Read HTML:\n%s", html);
 	
 	response_set_body(resp, html);
 
-	printf("Generated response:\n");
-	response_write(resp, STDOUT_FILENO);
+	INFO("Generated response:\n");
+	IFINFO(response_write(resp, STDOUT_FILENO));
 
 	return resp;
 }
@@ -190,12 +194,12 @@ strlist *readfile(char *filename) {
 	strlist *data = strlist_new();
 	strlist *ret = data;
 
-	printf("opening file %s\n", filename);
+	INFO("Opening file %s\n", filename);
 
 	fd = open(filename, O_RDONLY);
 	if (fd < 0) {
-		printf("ERROR: could not open %s\n", filename);
-		error("ERROR:");
+		ERROR("ERROR: could not open %s\n", filename);
+		IFERROR(perror(""));
 		return NULL;
 	}
 	
@@ -210,15 +214,10 @@ strlist *readfile(char *filename) {
 		i++;
 	}
 
-	printf("finished reading file %s:\n", filename);
-	strlist_print(ret);
+	INFO("Finished reading file %s:\n", filename);
+	IFDEBUG(strlist_print(ret));
 
 	close(fd);
 
 	return ret;
-}
-
-
-void error(char *msg) {
-	perror(msg);
 }

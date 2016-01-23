@@ -1,24 +1,22 @@
 
 #include "response.h"
+#include "utils.h"
 
 
 response *response_new() {
 	response *ret = malloc(sizeof(response));
 	memset(ret, 0, sizeof(response));
-	printf("Made response obj at %p\n", (void *)ret);
 	return ret;
 }
 
 void response_clear(response *resp) {
 	if (!resp)
 		return;
-	printf("Freeing response obj at %p\n", (void *)resp);
 	if (resp->status_message)
 		free(resp->status_message);
 	if (resp->content_type)
 		free(resp->content_type);
 	if (resp->body) {
-		printf("Freeing body at %p\n", (void *)resp->body);
 		free(resp->body);
 	}
 
@@ -30,7 +28,6 @@ int response_write(response *resp, int fd) {
 		return 1;
 
 	char linebuf[LINEBUF_SIZE] = "";
-
 
 	sprintf(linebuf, "HTTP/1.1 %d %s\r\n", resp->status_code, resp->status_message);
 	write(fd, linebuf, strlen(linebuf));
@@ -60,8 +57,8 @@ void response_set_status_code(response *resp, int code) {
 		msg = "Not Found";
 	} else {
 		char err_msg[100] = "";
-		sprintf(err_msg, "Status code %d not implemented!\n", code);
-		perror(err_msg);
+		IFERROR(sprintf(err_msg, "Status code %d not implemented!\n", code));
+		return;
 	}
 	resp->status_message = malloc(sizeof(char)*strlen(msg));
 	strcpy(resp->status_message, msg);
@@ -121,10 +118,9 @@ void response_set_body(response *resp, char *body) {
 		free(resp->body);
 
 	resp->body = malloc(sizeof(char)*len+1);
-	printf("Malloc'd body at %p\n", (void *)resp->body);
 	strcpy(resp->body, body);
 	*(resp->body + len + 1) = '\0';
-	printf("Setting response Content-Length to %d\n", len);
+	INFO("New body, setting response Content-Length: %d\n", len);
 	resp->content_length = len;
 }
 

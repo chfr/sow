@@ -53,8 +53,18 @@ void response_set_status_code(response *resp, int code) {
 		free(resp->status_message);
 	
 	// TODO set status_message properly here
-	resp->status_message = malloc(sizeof(char)*3);
-	strcpy(resp->status_message, "OK\0");
+	char *msg;
+	if (code == 200) {
+		msg = "OK";
+	} else if (code == 404) {
+		msg = "Not Found";
+	} else {
+		char err_msg[100] = "";
+		sprintf(err_msg, "Status code %d not implemented!\n", code);
+		perror(err_msg);
+	}
+	resp->status_message = malloc(sizeof(char)*strlen(msg));
+	strcpy(resp->status_message, msg);
 }
 
 int response_get_status_code(response *resp) {
@@ -102,7 +112,7 @@ char *response_get_content_type(response *resp) {
 }
 
 void response_set_body(response *resp, char *body) {
-	if (!resp)
+	if (!resp || !body)
 		return;
 
 	int len = strlen(body);

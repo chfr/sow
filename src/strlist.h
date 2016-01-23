@@ -16,5 +16,5 @@ void strlist_del(strlist *node);
 void strlist_print(const strlist *list);
 void strlist_print_debug(const strlist *list);
 void strlist_printr(const strlist *list);
-
-
+int strlist_total_length(const strlist *list);
+char *strlist_to_string(const strlist *list);

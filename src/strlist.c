@@ -100,3 +100,33 @@ void strlist_printr(const strlist *list) {
 		list = list->prev;
 	}
 }
+
+int strlist_total_length(const strlist *list) {
+	int ret = 0;
+
+	while (list) {
+		if (list->len >= 0)
+			ret += list->len;
+		list = list->next;
+	}
+
+	return ret;
+}
+
+char *strlist_to_string(const strlist *list) {
+	if (!list)
+		return NULL;
+
+	int total_len = strlist_total_length(list);
+	char *str = malloc(sizeof(char)*total_len + 1);
+	char *ret = str;
+
+
+	while (list) {
+		strcpy(str, list->data);
+		str += list->len;
+		list = list->next;
+	}
+
+	return ret;
+}

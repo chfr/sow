@@ -8,3 +8,4 @@ In no particular order. When everything's on fire, which one do you put out firs
 * Change the strlist implementation to operate on the head of lists instead of the tail. Gets rid of the ugly list_start junk.
 * Add info/debug/fine printouts (with compiler flags?)
 * Add readline(fd, &buf) function?
+* Add 404 functionality

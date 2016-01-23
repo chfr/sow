@@ -11,6 +11,7 @@
 #include "strlist.h"
 #include "request.h"
 #include "utils.h"
+#include "response.h"
 
 #define SRVPORT 8080
 
@@ -19,7 +20,7 @@
 
 void error(char* msg);
 strlist *process_lines(strlist *head, char *buf);
-char *respond(request *req);
+response *make_response(request *req);
 strlist *readfile(char *filename);
 
 int main(/*int argc, char *argv[]*/) {
@@ -73,7 +74,7 @@ int main(/*int argc, char *argv[]*/) {
 		}
 
 		request *req = request_new();
-		char *response;
+		response *resp;
 		char line[MAXLEN];
 		int i = 0; // TODO check so it doesn't overflow line
 
@@ -87,9 +88,9 @@ int main(/*int argc, char *argv[]*/) {
 						printf("empty line and no Content-Length header read\n");
 
 						request_print(req);
-						response = respond(req);
-						write(client_socket, response, strlen(response));
-						free(response);
+						resp = make_response(req);
+						response_write(resp, client_socket);
+						response_clear(resp);
 
 						i = 0;
 						continue;
@@ -118,52 +119,32 @@ int main(/*int argc, char *argv[]*/) {
 	return 0;
 }
 
-char *respond(request *req) {
-	strlist *data, *iter;
-	int len = 0;
-	char *html, *ret, *path = req->path, *str;
-	char *headers = "HTTP/1.1 200 OK\n\
-Content-Type: text/html\n\
-Content-Length: %d\n\n\n";
-	size_t headerlen = strlen(headers);
-	size_t htmllen;
+response *make_response(request *req) {
+	strlist *filedata;
+	char *html, *path = req->path;
+	
+	response *resp = response_new();
+	response_set_status_code(resp, 200);
+	response_set_content_type(resp, "text/html");
+	
 	if (req->method == GET) {
 		printf("requested path %s\n", path);
 
 		if (path[0] == '/')
 			path = &path[1];
 
-		data = readfile(path);
-		iter = data;
-		while (iter) {
-			len += iter->len;
-			iter = iter->next;
-		}
-
-		htmllen = (size_t)(len+1);
-		html = malloc(sizeof(char)*htmllen);
-
-		iter = data;
-		str = html;
-		while (iter) {
-			if (!iter->data) {
-				iter = iter->next;
-				continue;
-			}
-			strcpy(str, iter->data);
-			str += iter->len;
-			iter = iter->next;
-		}
+		filedata = readfile(path);
+		html = strlist_to_string(filedata);
+		printf("Read HTML:\n%s", html);
 		
-		ret = malloc(sizeof(char)*(headerlen+htmllen));
-		sprintf(ret, headers, htmllen);
-		strcpy(&ret[headerlen], html);
-		ret[headerlen+htmllen] = '\0';
-		
-		free(html);
-		printf("sending response:\n|%s|\n\n", ret);
+		response_set_body(resp, html);
+
+		printf("Generated response:\n");
+		response_write(resp, STDOUT_FILENO);
+
+		//~ free(html);
 	}
-	return ret;
+	return resp;
 }
 
 strlist *readfile(char *filename) {

@@ -17,6 +17,6 @@ typedef struct request {
 request *request_new();
 int request_parse(request *req, char *line);
 void request_print(request *req);
-void request_free(request *req);
+void request_clear(request *req);
 
 int request_get_content_length(request *req);

@@ -91,7 +91,7 @@ int main(/*int argc, char *argv[]*/) {
 					if (request_get_content_length(req) <= 0) {
 						DEBUG("Empty line and no Content-Length header read\n");
 
-						request_print(req);
+						IFINFO(request_print(req));
 						resp = make_response(req);
 						response_write(resp, client_socket);
 						response_clear(resp);

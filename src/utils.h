@@ -7,7 +7,7 @@
 #define DEBUG_LEVEL_DEBUG 4
 
 #ifndef DEBUG_LEVEL
-#define DEBUG_LEVEL DEBUG_LEVEL_DEBUG
+#define DEBUG_LEVEL DEBUG_LEVEL_WARN
 #endif
 
  // http://stackoverflow.com/a/1644898

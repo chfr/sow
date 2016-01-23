@@ -1,6 +1,6 @@
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Wpedantic -g
+CFLAGS = -Wall -Wextra -Wpedantic -g -DDEBUG_LEVEL=4
 BINDIR = bin/
 EXEC = server
 SRCDIR = src/

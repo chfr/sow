@@ -21,6 +21,7 @@
 void error(char* msg);
 strlist *process_lines(strlist *head, char *buf);
 response *make_response(request *req);
+response *make_404_response();
 strlist *readfile(char *filename);
 
 int main(/*int argc, char *argv[]*/) {
@@ -137,6 +138,10 @@ response *make_response(request *req) {
 			path = &path[1];
 
 		filedata = readfile(path);
+		if (!filedata) {
+			printf("Could not open file, generating 404...\n");
+			return make_404_response();
+		}
 		html = strlist_to_string(filedata);
 		printf("Read HTML:\n%s", html);
 		
@@ -150,6 +155,35 @@ response *make_response(request *req) {
 	return resp;
 }
 
+response *make_404_response() {
+	char *path = "404.html", *html;
+	response *resp = response_new();
+	strlist *filedata = strlist_new();
+	
+	response_set_status_code(resp, 404);
+	response_set_content_type(resp, "text/html");
+	
+	html = "<html><head><title>Not Found</title></head><body> \
+<h1>404!</h1><br>Sorry, the object you requested was not found. \
+</body><html>";
+	
+	
+	filedata = readfile(path);
+	if (filedata) {
+		html = strlist_to_string(filedata);
+	}
+	
+	printf("Read HTML:\n%s", html);
+	
+	response_set_body(resp, html);
+
+	printf("Generated response:\n");
+	response_write(resp, STDOUT_FILENO);
+
+	return resp;
+}
+
+
 strlist *readfile(char *filename) {
 	int fd, n, i;
 	char line[MAXLEN];
@@ -162,7 +196,7 @@ strlist *readfile(char *filename) {
 	if (fd < 0) {
 		printf("ERROR: could not open %s\n", filename);
 		error("ERROR:");
-		exit(1);
+		return NULL;
 	}
 	
 	i = 0; // TODO make sure this doesn't overflow line

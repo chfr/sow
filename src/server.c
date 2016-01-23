@@ -89,6 +89,7 @@ int main(/*int argc, char *argv[]*/) {
 						request_print(req);
 						response = respond(req);
 						write(client_socket, response, strlen(response));
+						free(response);
 
 						i = 0;
 						continue;
@@ -166,8 +167,8 @@ Content-Length: %d\n\n\n";
 }
 
 strlist *readfile(char *filename) {
-	int fd, n;
-	char c, *line, *line_start;
+	int fd, n, i;
+	char line[MAXLEN];
 	strlist *data = strlist_new();
 	strlist *ret = data;
 
@@ -179,21 +180,20 @@ strlist *readfile(char *filename) {
 		error("ERROR:");
 		exit(1);
 	}
-	line = malloc(MAXLEN*sizeof(char));
-	line_start = line;
-	while ((n = read(fd, &c, 1)) > 0) {
-		*line++ = c;
-		if (c == '\n') {
-			*line = '\0';
-			data = strlist_add(data, line_start);
-			line = line_start;
+	
+	i = 0; // TODO make sure this doesn't overflow line
+	while ((n = read(fd, &line[i], 1)) > 0) {
+		if (line[i] == '\n') {
+			line[i+1] = '\0';
+			data = strlist_add(data, line);
+			i = 0;
+			continue;
 		}
+		i++;
 	}
 
 	printf("finished reading file %s:\n", filename);
 	strlist_print(ret);
-
-	free(line);
 
 	close(fd);
 

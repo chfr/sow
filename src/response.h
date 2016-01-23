@@ -2,6 +2,10 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+
+#define LINEBUF_SIZE 1024
 
 typedef struct response {
 	int status_code;
@@ -13,6 +17,8 @@ typedef struct response {
 
 response *response_new();
 void response_clear(response *resp);
+int response_write(response *resp, int fd);
+
 void response_set_status_code(response *resp, int code);
 int response_get_status_code(response *resp);
 char *response_get_status_message(response *resp);

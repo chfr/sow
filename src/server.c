@@ -92,6 +92,9 @@ int main(/*int argc, char *argv[]*/) {
 						response_write(resp, client_socket);
 						response_clear(resp);
 
+						request_clear(req);
+						req = request_new();
+
 						i = 0;
 						continue;
 					}							

@@ -101,7 +101,9 @@ int main(/*int argc, char *argv[]*/) {
 
 						i = 0;
 						continue;
-					}							
+					} else {
+						DEBUG("We need to read %d more characters\n", request_get_content_length(req));
+					}
 				}
 				line[++i] = '\0';
 				if (request_parse(req, line)) {

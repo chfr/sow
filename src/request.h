@@ -27,6 +27,7 @@ typedef struct request {
 	char *user_agent;
 	char *referer;
 	char *content_type;
+	char *get_params;
 	int content_length;
 
 	char *body;
@@ -35,8 +36,11 @@ typedef struct request {
 
 request *request_new();
 int request_parse(request *req, char *line);
+void request_parse_path(request *req, char *line);
 void request_print(request *req);
 void request_clear(request *req);
 
 int request_get_content_length(request *req);
 char *request_get_method_string(request *req);
+int request_has_get_parameter(request *req, char *name);
+char *request_get_get_parameter_value(request *req, char *name);

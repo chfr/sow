@@ -37,9 +37,9 @@ int request_parse(request *req, char *line) {
 		line = skip_whitespace(c+1);
 		c = word_end(line);
 		*c = '\0';
-		
-		req->path = malloc(sizeof(char)*strlen(line));
-		strcpy(req->path, line);
+
+		// extract GET params, if any, and set req->path
+		request_parse_path(req, line);
 
 		line = skip_whitespace(c+1);
 		c = word_end(line);
@@ -97,15 +97,40 @@ int request_parse(request *req, char *line) {
 		*c = ' ';
 		WARN("Unknown header: %s\n", line);
 	}
-	
 
 	return 0;
 }
 
+// extract GET params, if any, and set req->path
+void request_parse_path(request *req, char *line) {
+	char *qmark = strstr(line, "?");
+
+	if (!qmark) { // no GET parameters
+		req->path = malloc(sizeof(char)*strlen(line));
+		strcpy(req->path, line);
+	} else {
+		req->path = malloc(sizeof(char)*(qmark-line));
+		strncpy(req->path, line, qmark-line);
+		req->path[qmark-line] = '\0';
+		req->get_params = malloc(sizeof(char)*(strlen(line) - (qmark-line)+1));
+		strcpy(req->get_params, qmark+1);
+	}
+}
+
 void request_print(request *req) {
 	printf("Request object at %p\n", (void *)req);
-	printf("%s %s HTTP/%d.%d\n",
-		request_get_method_string(req), req->path, req->major_ver, req->minor_ver);
+
+	char get_params[1024] = "";
+	if (req->get_params) {
+		get_params[0] = '?';
+		strcpy(&get_params[1],req->get_params);
+	}
+	printf("%s %s%s HTTP/%d.%d\n",
+		request_get_method_string(req),
+		req->path,
+		get_params,
+		req->major_ver,
+		req->minor_ver);
 
 	if (req->host)
 		printf(HDR_HOST": %s\n", req->host);
@@ -134,6 +159,8 @@ void request_print(request *req) {
 void request_clear(request *req) {
 	if (req->path)
 		free(req->path);
+	if (req->get_params)
+		free(req->get_params);
 	if (req->user_agent)
 		free(req->user_agent);
 	if (req->host)
@@ -169,4 +196,36 @@ char *request_get_method_string(request *req) {
 		return "POST";
 	else
 		return "UNKNOWN";
+}
+
+int request_has_get_parameter(request *req, char *name) {
+	if (!req->get_params)
+		return 0;
+
+	int len = strlen(name);
+	char needle[len+1];
+	strcpy(needle, name);
+	needle[len] = '=';
+	needle[len+1] = '\0';
+
+	if (strstr(req->get_params, needle))
+		return 1;
+	return 0;
+}
+
+char *request_get_get_parameter_value(request *req, char *name) {
+	if (!req->get_params)
+		return NULL;
+	if (!request_has_get_parameter(req, name))
+		return NULL;
+
+	int len = strlen(name);
+	char needle[len+1];
+	strcpy(needle, name);
+	needle[len] = '=';
+	needle[len+1] = '\0';
+
+	char *param = strstr(req->get_params, needle);
+	param += (len + 1);
+	return param;
 }

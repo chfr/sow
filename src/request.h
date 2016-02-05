@@ -6,6 +6,9 @@
 #define HDR_ACCEPT_LANGUAGE "Accept-Language"
 #define HDR_ACCEPT_ENCODING "Accept-Encoding"
 #define HDR_CONNECTION "Connection"
+#define HDR_REFERER "Referer"
+#define HDR_CONTENT_TYPE "Content-Type"
+#define HDR_CONTENT_LENGTH "Content-Length"
 
 typedef enum {GET, POST} http_method;
 
@@ -21,8 +24,12 @@ typedef struct request {
 	char *accept_language;
 	char *accept_encoding;
 	char *connection;
-	char* user_agent;
+	char *user_agent;
+	char *referer;
+	char *content_type;
 	int content_length;
+
+	char *body;
 } request;
 
 

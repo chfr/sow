@@ -82,6 +82,17 @@ int request_parse(request *req, char *line) {
 		line = skip_whitespace(c+1);
 		req->connection = malloc(sizeof(char)*strlen(line));
 		strcpy(req->connection, line);
+	} else if (!strcmp(line, HDR_REFERER":")) {
+		line = skip_whitespace(c+1);
+		req->referer = malloc(sizeof(char)*strlen(line));
+		strcpy(req->referer, line);
+	} else if (!strcmp(line, HDR_CONTENT_TYPE":")) {
+		line = skip_whitespace(c+1);
+		req->content_type = malloc(sizeof(char)*strlen(line));
+		strcpy(req->content_type, line);
+	} else if (!strcmp(line, HDR_CONTENT_LENGTH":")) {
+		line = skip_whitespace(c+1);
+		req->content_length = atoi(line);
 	} else {
 		*c = ' ';
 		WARN("Unknown header: %s\n", line);
@@ -108,8 +119,16 @@ void request_print(request *req) {
 		printf(HDR_ACCEPT_ENCODING": %s\n", req->accept_encoding);
 	if (req->connection)
 		printf(HDR_CONNECTION": %s\n", req->connection);
+	if (req->referer)
+		printf(HDR_REFERER": %s\n", req->referer);
+	if (req->content_type)
+		printf(HDR_CONTENT_TYPE": %s\n", req->content_type);
+
 	if (req->content_length >= 0)
 		printf("Content-Length: %d\n", req->content_length);
+
+	if (req->body)
+		printf("\n%s\n", req->body);
 }
 
 void request_clear(request *req) {
@@ -127,6 +146,13 @@ void request_clear(request *req) {
 		free(req->accept_encoding);
 	if (req->connection)
 		free(req->connection);
+	if (req->referer)
+		free(req->referer);
+	if (req->content_type)
+		free(req->content_type);
+
+	if (req->body)
+		free(req->body);
 
 	free(req);
 }

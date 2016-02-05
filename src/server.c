@@ -78,17 +78,21 @@ int main(/*int argc, char *argv[]*/) {
 		}
 
 		request *req = request_new();
+		int reading_body = 0;
+		int body_len = 0;
 		response *resp;
 		char line[MAXLEN];
 		int i = 0; // TODO check so it doesn't overflow line
 
 		while ((n = read(client_socket, &line[i], 1)) > 0) {
+			if (reading_body)
+				body_len++;
 			if (is_newline(line[i])) {
 				if (i == 1 && is_crlf(line)) {
 					// we've read an empty line, should be either the
 					// end of the request or the start of the body
 					
-					if (request_get_content_length(req) <= 0) {
+					if (!reading_body && request_get_content_length(req) <= 0) {
 						DEBUG("Empty line and no Content-Length header read\n");
 
 						IFINFO(request_print(req));
@@ -101,18 +105,32 @@ int main(/*int argc, char *argv[]*/) {
 
 						i = 0;
 						continue;
-					} else {
+					} else if (!reading_body) {
 						DEBUG("We need to read %d more characters\n", request_get_content_length(req));
+						reading_body = 1;
+						DEBUG("Creating space for body in request struct\n");
+						req->body = malloc(sizeof(char)*(request_get_content_length(req) + 1));
+						i = 0;
+						continue;
 					}
 				}
 				line[++i] = '\0';
-				//~ printf("%s\n", line);
-				if (request_parse(req, line)) {
+				printf("%s\n", line);
+				if (!reading_body && request_parse(req, line)) {
 					// some error occurred while parsing
+				} else if (reading_body) {
+					DEBUG("Read body line: %s\n", line);
+					strcpy(req->body, line);
 				}
 				
 				i = 0;
 				continue;
+			}
+			if (reading_body && body_len >= request_get_content_length(req)) {
+				strncpy(req->body, line, req->content_length);
+				req->body[req->content_length] = '\0';
+				DEBUG("Finished reading body, request obj is:\n");
+				request_print(req);
 			}
 			i++;
 		}

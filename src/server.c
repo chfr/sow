@@ -130,7 +130,7 @@ int main(/*int argc, char *argv[]*/) {
 				strncpy(req->body, line, req->content_length);
 				req->body[req->content_length] = '\0';
 				DEBUG("Finished reading body, request obj is:\n");
-				request_print(req);
+				IFDEBUG(request_print(req));
 			}
 			i++;
 		}
@@ -172,7 +172,7 @@ response *make_response(request *req) {
 		
 		response_set_body(resp, html);
 
-		//IFINFO(INFO("Generated response:\n"));
+		//INFO("Generated response:\n");
 		//IFINFO(response_write(resp, STDOUT_FILENO));
 
 		//~ free(html);
@@ -202,7 +202,7 @@ response *make_404_response() {
 	
 	response_set_body(resp, html);
 
-	//IFINFO(INFO("Generated response:\n"));
+	//INFO("Generated response:\n");
 	//IFINFO(response_write(resp, STDOUT_FILENO));
 
 	return resp;

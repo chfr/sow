@@ -106,6 +106,7 @@ int main(/*int argc, char *argv[]*/) {
 					}
 				}
 				line[++i] = '\0';
+				//~ printf("%s\n", line);
 				if (request_parse(req, line)) {
 					// some error occurred while parsing
 				}
@@ -149,12 +150,12 @@ response *make_response(request *req) {
 			return make_404_response();
 		}
 		html = strlist_to_string(filedata);
-		INFO("Read HTML:\n%s", html);
+		//INFO("Read HTML:\n%s", html);
 		
 		response_set_body(resp, html);
 
-		INFO("Generated response:\n");
-		IFINFO(response_write(resp, STDOUT_FILENO));
+		//IFINFO(INFO("Generated response:\n"));
+		//IFINFO(response_write(resp, STDOUT_FILENO));
 
 		//~ free(html);
 	}
@@ -179,12 +180,12 @@ response *make_404_response() {
 		html = strlist_to_string(filedata);
 	}
 	
-	INFO("Read HTML:\n%s", html);
+	//INFO("Read HTML:\n%s", html);
 	
 	response_set_body(resp, html);
 
-	INFO("Generated response:\n");
-	IFINFO(response_write(resp, STDOUT_FILENO));
+	//IFINFO(INFO("Generated response:\n"));
+	//IFINFO(response_write(resp, STDOUT_FILENO));
 
 	return resp;
 }
@@ -217,7 +218,7 @@ strlist *readfile(char *filename) {
 	}
 
 	INFO("Finished reading file %s:\n", filename);
-	IFDEBUG(strlist_print(ret));
+	//IFDEBUG(strlist_print(ret));
 
 	close(fd);
 

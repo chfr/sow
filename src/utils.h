@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdio.h>
+#include <unistd.h>
+
 #define DEBUG_LEVEL_NONE 0
 #define DEBUG_LEVEL_ERROR 1
 #define DEBUG_LEVEL_WARN 2
@@ -28,6 +31,7 @@
 #define IFINFO(cmd) if (DEBUG_LEVEL >= DEBUG_LEVEL_INFO) {cmd;}
 #define IFDEBUG(cmd) if (DEBUG_LEVEL >= DEBUG_LEVEL_DEBUG) {cmd;}
 
+int fd_readline(int sockfd, char *buffer, size_t socklen);
 
 int is_newline(char c);
 int is_crlf(char *line);

@@ -1,5 +1,28 @@
 #include "utils.h"
 
+int fd_readline(int sockfd, char *buffer, size_t socklen) {
+	char c, *buf_start = buffer;
+	int n, num_read = 0;
+	
+	while ((n = read(sockfd, &c, 1)) > 0) {
+		socklen--;
+		num_read++;
+		*buffer++ = c;
+		
+		if (socklen == 1) { // out of buffer space
+			break;
+		}
+
+		if (c == '\n') { // end of line
+			break;
+		}
+	}
+
+	*buffer = '\0';
+	return buffer - buf_start;
+}
+
+
 int is_newline(char c) {
 	return c == '\n';
 }

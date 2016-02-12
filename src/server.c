@@ -15,9 +15,9 @@
 
 #define SRVPORT 8080
 
-#define BUFLEN 1024
 #define MAXLEN 1024
 
+void respond(request **req, int client_socket);
 strlist *process_lines(strlist *head, char *buf);
 response *make_response(request *req);
 response *make_404_response();
@@ -78,74 +78,73 @@ int main(/*int argc, char *argv[]*/) {
 		}
 
 		request *req = request_new();
-		int reading_body = 0;
-		int body_len = 0;
-		response *resp;
 		char line[MAXLEN];
-		int i = 0; // TODO check so it doesn't overflow line
 
-		while ((n = read(client_socket, &line[i], 1)) > 0) {
-			if (reading_body)
-				body_len++;
-			if (is_newline(line[i])) {
-				if (i == 1 && is_crlf(line)) {
-					// we've read an empty line, should be either the
-					// end of the request or the start of the body
-					
-					if (!reading_body && request_get_content_length(req) <= 0) {
-						DEBUG("Empty line and no Content-Length header read\n");
-
-						IFINFO(request_print(req));
-						resp = make_response(req);
-						response_write(resp, client_socket);
-						response_clear(resp);
-
-						request_clear(req);
-						req = request_new();
-
-						i = 0;
-						continue;
-					} else if (!reading_body) {
-						DEBUG("We need to read %d more characters\n", request_get_content_length(req));
-						reading_body = 1;
-						DEBUG("Creating space for body in request struct\n");
-						req->body = malloc(sizeof(char)*(request_get_content_length(req) + 1));
-						i = 0;
-						continue;
-					}
+		while ((n = fd_readline(client_socket, line, MAXLEN)) > 0) {
+			if (n == MAXLEN-1 && line[MAXLEN-1] != '\n') {
+				WARN("Line length exceeded MAXLEN %d\n", MAXLEN);
+				char c;
+				int dropped = 0;
+				while ((n = read(client_socket, &c, 1)) > 0) {
+					dropped += 1;
+					if (c == '\n')
+						break;
 				}
-				line[++i] = '\0';
-				printf("%s\n", line);
-				if (!reading_body && request_parse(req, line)) {
-					// some error occurred while parsing
-				} else if (reading_body) {
-					DEBUG("Read body line: %s\n", line);
-					strcpy(req->body, line);
-				}
+				WARN("Skipped to the next line, dropped %d characters\n", dropped);	
+			}
+
+			if (is_crlf(line)) { // We've reached the end of the headers
+				int left_to_read = request_get_content_length(req);
+				int total_read = 0, len;
 				
-				i = 0;
-				continue;
+				if (left_to_read > 0) {
+					DEBUG("There's %d chars of body to read\n", left_to_read);
+					// There's a Content-Length so there must be a body
+					req->body = malloc(sizeof(char) * (left_to_read+1));
+					
+					len = MAXLEN < left_to_read ? MAXLEN : left_to_read;
+					len += 1;
+					
+					while (left_to_read && (n = fd_readline(client_socket, line, len)) > 0) {
+						DEBUG("Read %d characters of body: %s\n", n, line);
+						strcpy(&req->body[total_read], line);
+						total_read += n;
+						left_to_read -= n;
+						DEBUG("total_read: %d, left_to_read: %d\n", total_read, left_to_read);
+						len = MAXLEN < left_to_read ? MAXLEN : left_to_read;
+					}
+					req->body[total_read+1] = '\0';
+					DEBUG("Done reading body in %d chars:\n", total_read);
+					DEBUG("%s\n", req->body);
+					respond(&req, client_socket);
+					continue;
+				} else {
+					DEBUG("No body to read, generating response\n");
+					respond(&req, client_socket);
+					continue;
+				}
 			}
-			if (reading_body && body_len >= request_get_content_length(req)) {
-				strncpy(req->body, line, req->content_length);
-				req->body[req->content_length] = '\0';
-				DEBUG("Finished reading body, request obj is:\n");
-				IFDEBUG(request_print(req));
+
+			if (request_parse(req, line)) {
+				WARN("An error occurred while parsing the previous line\n");
 			}
-			i++;
 		}
-		
-		if (n < 0) {
-			ERROR("Reading from socket failed");
-			IFERROR(perror(""));
-			exit(1);
-		}
+		DEBUG("Done with this request! n = %d\n", n);
 	} while (1);
-	
+
 	close(server_socket);
 	close(client_socket);
 
 	return 0;
+}
+
+void respond(request **req, int client_socket) {
+	response *resp = make_response(*req);
+	response_write(resp, client_socket);
+	response_clear(resp);
+
+	request_clear(*req);
+	*req = request_new();
 }
 
 response *make_response(request *req) {
@@ -156,7 +155,7 @@ response *make_response(request *req) {
 	response_set_status_code(resp, 200);
 	response_set_content_type(resp, "text/html");
 	
-	if (req->method == GET) {
+	if (req->method == GET || req->method == POST) {
 		INFO("Requested path %s\n", path);
 
 		if (path[0] == '/')
@@ -168,14 +167,10 @@ response *make_response(request *req) {
 			return make_404_response();
 		}
 		html = strlist_to_string(filedata);
-		//INFO("Read HTML:\n%s", html);
 		
 		response_set_body(resp, html);
 
-		//INFO("Generated response:\n");
-		//IFINFO(response_write(resp, STDOUT_FILENO));
-
-		//~ free(html);
+		free(html);
 	}
 	return resp;
 }
@@ -234,9 +229,6 @@ strlist *readfile(char *filename) {
 		}
 		i++;
 	}
-
-	INFO("Finished reading file %s:\n", filename);
-	//IFDEBUG(strlist_print(ret));
 
 	close(fd);
 
